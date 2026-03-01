@@ -2,6 +2,7 @@
 
 """Configs."""
 from fvcore.common.config import CfgNode
+
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
@@ -255,8 +256,8 @@ _C.SLOWFAST.FUSION_KERNEL_SZ = 5
 
 ####### TimeSformer Options
 _C.TIMESFORMER = CfgNode()
-_C.TIMESFORMER.ATTENTION_TYPE = 'divided_space_time'
-_C.TIMESFORMER.PRETRAINED_MODEL = ''
+_C.TIMESFORMER.ATTENTION_TYPE = "divided_space_time"
+_C.TIMESFORMER.PRETRAINED_MODEL = ""
 
 ## MixUp parameters
 _C.MIXUP = CfgNode()
@@ -266,7 +267,7 @@ _C.MIXUP.CUTMIX_ALPHA = 1.0
 _C.MIXUP.CUTMIX_MINMAX = None
 _C.MIXUP.PROB = 1.0
 _C.MIXUP.SWITCH_PROB = 0.5
-_C.MIXUP.MODE = 'batch'
+_C.MIXUP.MODE = "batch"
 
 _C.EMA = CfgNode()
 _C.EMA.ENABLED = False
@@ -275,6 +276,10 @@ _C.EMA.ENABLED = False
 # Data options
 # -----------------------------------------------------------------------------
 _C.DATA = CfgNode()
+
+_C.DATA.REAL_VIDEO_DIR = ""
+_C.DATA.FAKE_VIDEO_DIR = ""
+_C.DATA.NUM_SAMPLES = -1
 
 # The path to the data directory.
 _C.DATA.PATH_TO_DATA_DIR = ""
@@ -339,8 +344,8 @@ _C.DATA.REVERSE_INPUT_CHANNEL = False
 ############
 _C.DATA.TEMPORAL_EXTENT = 8
 _C.DATA.DEIT_TRANSFORMS = False
-_C.DATA.COLOR_JITTER = 0.
-_C.DATA.AUTO_AUGMENT = ''
+_C.DATA.COLOR_JITTER = 0.0
+_C.DATA.AUTO_AUGMENT = ""
 _C.DATA.RE_PROB = 0.0
 
 # ---------------------------------------------------------------------------- #
@@ -568,13 +573,13 @@ _C.MULTIGRID.EPOCH_FACTOR = 1.5
 # Enable short cycles.
 _C.MULTIGRID.SHORT_CYCLE = False
 # Short cycle additional spatial dimensions relative to the default crop size.
-_C.MULTIGRID.SHORT_CYCLE_FACTORS = [0.5, 0.5 ** 0.5]
+_C.MULTIGRID.SHORT_CYCLE_FACTORS = [0.5, 0.5**0.5]
 
 _C.MULTIGRID.LONG_CYCLE = False
 # (Temporal, Spatial) dimensions relative to the default shape.
 _C.MULTIGRID.LONG_CYCLE_FACTORS = [
-    (0.25, 0.5 ** 0.5),
-    (0.5, 0.5 ** 0.5),
+    (0.25, 0.5**0.5),
+    (0.5, 0.5**0.5),
     (0.5, 1),
     (1, 1),
 ]
@@ -697,7 +702,15 @@ _C.TENSORBOARD.WRONG_PRED_VIS.TAG = "Incorrectly classified videos."
 # within this subset is visualized.
 _C.TENSORBOARD.WRONG_PRED_VIS.SUBSET_PATH = ""
 
+# Add as new top-level blocks:
+_C.EMBEDDINGS = CfgNode()
+_C.EMBEDDINGS.DIR = ""
+_C.EMBEDDINGS.TRAIN_FILE = "train.pt"
+_C.EMBEDDINGS.VAL_FILE = "val.pt"
+_C.EMBEDDINGS.TEST_FILE = "test.pt"
 
+_C.CLASSIFIER = CfgNode()
+_C.CLASSIFIER.MODEL_PATH = ""
 # ---------------------------------------------------------------------------- #
 # Demo options
 # ---------------------------------------------------------------------------- #
@@ -785,6 +798,7 @@ _C.DEMO.COMMON_CLASS_NAMES = [
 # Slow-motion rate for the visualization. The visualized portions of the
 # video will be played `_C.DEMO.SLOWMO` times slower than usual speed.
 _C.DEMO.SLOWMO = 1
+
 
 def _assert_and_infer_cfg(cfg):
     # BN assertions.

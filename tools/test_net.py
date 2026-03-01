@@ -75,12 +75,8 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
             metadata = meta["metadata"]
 
             preds = preds.detach().cpu() if cfg.NUM_GPUS else preds.detach()
-            ori_boxes = (
-                ori_boxes.detach().cpu() if cfg.NUM_GPUS else ori_boxes.detach()
-            )
-            metadata = (
-                metadata.detach().cpu() if cfg.NUM_GPUS else metadata.detach()
-            )
+            ori_boxes = ori_boxes.detach().cpu() if cfg.NUM_GPUS else ori_boxes.detach()
+            metadata = metadata.detach().cpu() if cfg.NUM_GPUS else metadata.detach()
 
             if cfg.NUM_GPUS > 1:
                 preds = torch.cat(du.all_gather_unaligned(preds), dim=0)
@@ -97,9 +93,7 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
 
             # Gather all the predictions across all the devices to perform ensemble.
             if cfg.NUM_GPUS > 1:
-                preds, labels, video_idx = du.all_gather(
-                    [preds, labels, video_idx]
-                )
+                preds, labels, video_idx = du.all_gather([preds, labels, video_idx])
             if cfg.NUM_GPUS:
                 preds = preds.cpu()
                 labels = labels.cpu()
@@ -107,9 +101,7 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
 
             test_meter.iter_toc()
             # Update and log stats.
-            test_meter.update_stats(
-                preds.detach(), labels.detach(), video_idx.detach()
-            )
+            test_meter.update_stats(preds.detach(), labels.detach(), video_idx.detach())
             test_meter.log_iter_stats(cur_iter)
 
         test_meter.iter_tic()
@@ -130,9 +122,7 @@ def perform_test(test_loader, model, test_meter, cfg, writer=None):
             with PathManager.open(save_path, "wb") as f:
                 pickle.dump([all_labels, all_labels], f)
 
-            logger.info(
-                "Successfully saved prediction results to {}".format(save_path)
-            )
+            logger.info("Successfully saved prediction results to {}".format(save_path))
 
     test_meter.finalize_metrics()
     return test_meter
@@ -186,9 +176,7 @@ def test(cfg):
     )
 
     # Set up writer for logging to Tensorboard format.
-    if cfg.TENSORBOARD.ENABLE and du.is_master_proc(
-        cfg.NUM_GPUS * cfg.NUM_SHARDS
-    ):
+    if cfg.TENSORBOARD.ENABLE and du.is_master_proc(cfg.NUM_GPUS * cfg.NUM_SHARDS):
         writer = tb.TensorboardWriter(cfg)
     else:
         writer = None

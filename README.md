@@ -1,3 +1,118 @@
+### Variants and outputs
+Here are the exact model parameters you need to configure for each of the outputs in your folder structure. 
+
+Assuming you are using the standard **Hugging Face `Transformers`** implementation (`TimesformerModel` and `TimesformerConfig`), these parameters control the architectural variations of the network to match the original Facebook AI research paper.
+
+### 1. Test Alpha: Temporal Dependency (`embeddings/alpha_temporal/`)
+This test modifies the `attention_type` while keeping the frame count and spatial resolution at their standard defaults.
+
+**`space_only_S.npy`**
+*   **Purpose:** Ignores time completely (treats video as a batch of independent images).
+*   **Parameters:**
+    ```python
+    config = TimesformerConfig(
+        attention_type="space_only", 
+        image_size=224, 
+        num_frames=8
+    )
+    ```
+
+**`divided_TS.npy`**
+*   **Purpose:** Computes temporal attention, then spatial attention (The default TimeSformer).
+*   **Parameters:**
+    ```python
+    config = TimesformerConfig(
+        attention_type="divided_space_time", 
+        image_size=224, 
+        num_frames=8
+    )
+    ```
+
+**`joint_ST.npy`**
+*   **Purpose:** Looks at all patches across all frames simultaneously.
+*   **Parameters:**
+    ```python
+    config = TimesformerConfig(
+        attention_type="joint_space_time", 
+        image_size=224, 
+        num_frames=8
+    )
+    ```
+
+***
+
+### 2. Test Beta: Boundary Resolution (`embeddings/beta_resolution/`)
+This test changes the `image_size`. The original paper also officially increases the default frame count to 16 for the high-resolution variant (TimeSformer-HR).
+
+**`default_224.npy`**
+*   **Purpose:** Standard spatial resolution for baseline comparison.
+*   **Parameters:**
+    ```python
+    config = TimesformerConfig(
+        attention_type="divided_space_time", 
+        image_size=224, 
+        num_frames=16 # Matched to HR for a direct 1:1 ablation
+    )
+    ```
+
+**`high_res_448.npy`** (TimeSformer-HR)
+*   **Purpose:** Hyper-focuses on the exact micro-seam of the fake face blending.
+*   **Parameters:**
+    ```python
+    config = TimesformerConfig(
+        attention_type="divided_space_time", 
+        image_size=448,  # High resolution
+        patch_size=16,   # Keep patch size at 16 to generate more fine-grained tokens
+        num_frames=16
+    )
+    ```
+
+***
+
+### 3. Test Gamma: Long-Term Consistency (`embeddings/gamma_consistency/`)
+This test pushes the model's memory by drastically altering the `num_frames` parameter to see when deepfake temporal consistency breaks down.
+
+**`frames_8.npy`**
+*   **Parameters:** `num_frames=8`, `image_size=224`
+
+**`frames_32.npy`**
+*   **Parameters:** `num_frames=32`, `image_size=224`
+
+**`frames_96.npy`** (TimeSformer-L / Long-Range)
+*   **Purpose:** Analyzes a massive temporal window to catch long-term morphing/flickering.
+*   **Parameters:**
+    ```python
+    config = TimesformerConfig(
+        attention_type="divided_space_time", 
+        image_size=224, 
+        num_frames=96 # Max temporal range
+    )
+    ```
+
+***
+
+### 4. Test Delta: Dual-Attention Visual Mapping (`results/attention_heatmaps/`)
+To generate the visualizations for your "Show Your Work" test, you use the standard Divided Space-Time configuration, but you must pass a specific parameter during the **forward pass** of the model (not just in the config).
+
+*   **Setup Configuration:**
+    ```python
+    config = TimesformerConfig(
+        attention_type="divided_space_time", 
+        image_size=224, 
+        num_frames=8
+    )
+    model = TimesformerModel(config)
+    ```
+
+*   **Forward Pass Parameter:** 
+    When passing your video through the model, you must explicitly set `output_attentions=True`.
+    ```python
+    outputs = model(video_pixels, output_attentions=True)
+    
+    # outputs.attentions will now return a tuple containing the 
+    # attention weight matrices for you to plot using OpenCV/Matplotlib
+    ``` 
+Because you are using `divided_space_time`, the model mathematically separates these attention weights, allowing you to plot the spatial heatmap (where the blending occurs) and the temporal heatmap (where the motion glitches occur) independently.
 # TimeSformer
 
 This is an official pytorch implementation of our ICML 2021 paper [Is Space-Time Attention All You Need for Video Understanding?](https://arxiv.org/pdf/2102.05095.pdf). In this repository, we provide PyTorch code for training and testing our proposed TimeSformer model. TimeSformer provides an efficient video classification framework that achieves state-of-the-art results on several video action recognition benchmarks such as Kinetics-400.
